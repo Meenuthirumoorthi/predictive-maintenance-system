@@ -1,43 +1,56 @@
 # Predictive Maintenance MLOps Project
 
-End-to-end starter project for predicting industrial equipment failure from sensor data, serving the model with FastAPI, packaging it with Docker, and automating build/test/deploy through Jenkins and AWS ECR.
+This project predicts industrial machine failure from sensor readings and exposes the model through a FastAPI service. It also includes a live dashboard that simulates real-time machine telemetry so the project looks like a practical monitoring system during demos.
 
 ## Project Structure
 
 ```text
 .
-├── app/
-│   ├── main.py              # FastAPI application
-│   └── schemas.py           # Request/response models
-├── data/
-│   └── sample_sensor_data.csv
-├── models/
-│   └── .gitkeep
-├── src/
-│   ├── predict.py           # Model loading and inference helper
-│   └── train.py             # Training pipeline
-├── tests/
-│   └── test_api.py
-├── Dockerfile
-├── Jenkinsfile
-└── requirements.txt
+|-- app/
+|   |-- main.py              # FastAPI app and live dashboard
+|   |-- schemas.py           # Request/response models
+|-- data/
+|   |-- ai4i2020.csv         # Full dataset if downloaded
+|   |-- sample_sensor_data.csv
+|-- models/
+|   |-- .gitkeep
+|-- src/
+|   |-- predict.py           # Model loading and prediction logic
+|   |-- simulator.py         # Real-time telemetry simulator
+|   |-- train.py             # Training pipeline
+|-- tests/
+|   |-- test_api.py
+|-- Dockerfile
+|-- Jenkinsfile
+|-- requirements.txt
 ```
 
 ## Local Setup
 
 ```powershell
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-pip install -r requirements.txt
-python -m src.train
-uvicorn app.main:app --reload
+python -m pip install -r requirements.txt
+python -m src.train --data-path data\ai4i2020.csv
+python -m uvicorn app.main:app --reload
 ```
 
-Open the API docs at:
+Open the live dashboard:
+
+```text
+http://127.0.0.1:8000/
+```
+
+Open the API docs:
 
 ```text
 http://127.0.0.1:8000/docs
 ```
+
+## API Endpoints
+
+- `GET /` - real-time predictive maintenance dashboard
+- `GET /health` - API health check
+- `GET /live` - simulated live machine telemetry plus prediction
+- `POST /predict` - prediction for a manual sensor payload
 
 Example prediction payload:
 
@@ -51,37 +64,29 @@ Example prediction payload:
 }
 ```
 
+The response includes:
+
+- failure prediction
+- failure probability
+- risk level
+- maintenance priority
+- estimated time to failure
+- maintenance recommendation
+
 ## Tests
 
 ```powershell
-pytest
+python -m pytest
 ```
 
 ## Docker
+
+Docker is optional for local testing. If Docker is not available on your desktop, run the Python/FastAPI workflow locally and use Docker on AWS EC2 or Jenkins later.
 
 ```powershell
 docker build -t predictive-maintenance-api .
 docker run --rm -p 8000:8000 predictive-maintenance-api
 ```
-
-## Using the AI4I 2020 Dataset
-
-The included CSV is a tiny sample so the project runs immediately. For the full dataset, download the AI4I 2020 Predictive Maintenance Dataset from UCI or Kaggle and pass its path to the trainer:
-
-```powershell
-python -m src.train --data-path path\to\ai4i2020.csv --model-path models\model.pkl
-```
-
-The trainer expects columns equivalent to:
-
-- `Air temperature [K]`
-- `Process temperature [K]`
-- `Rotational speed [rpm]`
-- `Torque [Nm]`
-- `Tool wear [min]`
-- `Machine failure`
-
-It also accepts this repo's normalized column names.
 
 ## Jenkins and AWS
 
@@ -100,4 +105,3 @@ Required Jenkins environment:
 - Docker installed and usable by the `jenkins` user
 - AWS CLI installed
 - Jenkins AWS credentials configured through environment, instance profile, or Jenkins credentials binding
-

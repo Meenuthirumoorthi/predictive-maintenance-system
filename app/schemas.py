@@ -12,5 +12,15 @@ class SensorReading(BaseModel):
 class PredictionResponse(BaseModel):
     failure_prediction: bool
     failure_probability: float
+    risk_level: str
+    maintenance_priority: str
+    recommendation: str
+    estimated_time_to_failure_hours: int | None
     status: str
 
+
+class LiveTelemetryResponse(BaseModel):
+    machine_id: str
+    timestamp: str
+    sensor_reading: SensorReading
+    prediction: PredictionResponse
